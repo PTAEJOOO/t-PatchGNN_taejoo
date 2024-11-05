@@ -288,7 +288,10 @@ def patch_variable_time_collate_fn(batch, args, device = torch.device("cpu"), da
 		flat_vals: (B, L_out, D) tensor containing the observed values.
 		flat_mask: (B, L_out, D) tensor containing 1 where values were observed and 0 otherwise.
 	"""
-
+	# print("before patching data")
+	# print(batch[0][1].shape)
+	# print(batch[0][2].shape)
+	# print(batch[0][3].shape)
 	D = batch[0][2].shape[1]
 	combined_tt, inverse_indices = torch.unique(torch.cat([ex[1] for ex in batch]), sorted=True, return_inverse=True)
 
@@ -350,7 +353,16 @@ def patch_variable_time_collate_fn(batch, args, device = torch.device("cpu"), da
 		}
 
 	data_dict = utils.split_and_patch_batch(data_dict, args, n_observed_tp, patch_indices)
+	## .split_and_patch_batch를 거치면서 "data", "time_steps", "mask"는 사라짐 
+	print("*"*50)
+	print("observed data size = ", data_dict["observed_data"].size()) 
+	print("observed tp size = ", data_dict["observed_tp"].size()) 
+	print("observed mask size = ", data_dict["observed_mask"].size())
 
+	print("data_to_predict size = ", data_dict["data_to_predict"].size()) 
+	print("tp_to_predict size = ", data_dict["tp_to_predict"].size()) 
+	print("mask_predicted_data size = ", data_dict["mask_predicted_data"].size()) 
+	print("*"*50)
 	return data_dict
 
 

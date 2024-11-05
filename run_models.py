@@ -17,7 +17,7 @@ import torch.optim as optim
 
 import lib.utils as utils
 from lib.parse_datasets import parse_datasets
-from model.tPatchGNN import *
+from tPatchGNN.model.tPatchGNN import *
 
 parser = argparse.ArgumentParser('IMTS Forecasting')
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 	##################################################################
 	data_obj = parse_datasets(args, patch_ts=True)
 	input_dim = data_obj["input_dim"]
-	
+	# print(f"input dim = {input_dim}") # =41
 	### Model setting ###
 	args.ndim = input_dim
 	model = tPatchGNN(args).to(args.device)
@@ -131,6 +131,7 @@ if __name__ == '__main__':
 			train_res = compute_all_losses(model, batch_dict)
 			train_res["loss"].backward()
 			optimizer.step()
+			sys.exit(0)
 
 		### Validation ###
 		model.eval()

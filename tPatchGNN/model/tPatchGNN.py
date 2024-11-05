@@ -3,8 +3,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.Transformer_EncDec import Encoder, EncoderLayer
-from model.SelfAttention_Family import FullAttention, AttentionLayer
+from tPatchGNN.model.Transformer_EncDec import Encoder, EncoderLayer
+from tPatchGNN.model.SelfAttention_Family import FullAttention, AttentionLayer
+# from model.Transformer_EncDec import Encoder, EncoderLayer
+# from model.SelfAttention_Family import FullAttention, AttentionLayer
 
 import lib.utils as utils
 from lib.evaluation import *
@@ -128,8 +130,10 @@ class tPatchGNN(nn.Module):
 		if supports is None:
 			self.supports = []
 
-		self.nodevec1 = nn.Parameter(torch.randn(self.N, nodevec_dim).cuda(), requires_grad=True)
-		self.nodevec2 = nn.Parameter(torch.randn(nodevec_dim, self.N).cuda(), requires_grad=True)
+		self.nodevec1 = nn.Parameter(torch.randn(self.N, nodevec_dim).to(args.device), requires_grad=True)
+		self.nodevec2 = nn.Parameter(torch.randn(nodevec_dim, self.N).to(args.device), requires_grad=True)
+		# self.nodevec1 = nn.Parameter(torch.randn(self.N, nodevec_dim).cuda(), requires_grad=True)
+		# self.nodevec2 = nn.Parameter(torch.randn(nodevec_dim, self.N).cuda(), requires_grad=True)
 
 		self.nodevec_linear1 = nn.ModuleList()
 		self.nodevec_linear2 = nn.ModuleList()
@@ -266,29 +270,45 @@ class tPatchGNN(nn.Module):
 		truth_time_steps (B*N*M, L, 1)
         mask_X (B*N*M, L, 1)
         """
+		# print("*"*50)
+		# print("time steps")
+		# print(truth_time_steps[4,:,:,:])
+		# print("*"*50)
+		# print("x vals")
+		# print(X[4,:,:,:])
+		# print("*"*50)
+		# print("mask")
+		# print(mask[4,:,:,:])
+		# print("*"*50)
 
+		# print("Forecasting input X shape = ", X.shape)
 		B, M, L_in, N = X.shape
 		self.batch_size = B
 		X = X.permute(0, 3, 1, 2).reshape(-1, L_in, 1) # (B*N*M, L, 1)
 		truth_time_steps = truth_time_steps.permute(0, 3, 1, 2).reshape(-1, L_in, 1)  # (B*N*M, L, 1)
 		mask = mask.permute(0, 3, 1, 2).reshape(-1, L_in, 1)  # (B*N*M, L, 1)
 		te_his = self.LearnableTE(truth_time_steps) # (B*N*M, L, F_te)
-
+		print("*"*50)
+		print(f"before concate {X.size()} and {te_his.size()}")
 		X = torch.cat([X, te_his], dim=-1)  # (B*N*M, L, F)
+		print(f"before IMTS model {X.size()}")
 
 		### *** a encoder to model irregular time series
 		h = self.IMTS_Model(X, mask) # (B, N, hid_dim)
+		print(f"after IMTS model {h.size()}")
 
 		""" Decoder """
-		L_pred = time_steps_to_predict.shape[-1]
+		L_pred = time_steps_to_predict.shape[-1] # Lp
 		h = h.unsqueeze(dim=-2).repeat(1, 1, L_pred, 1) # (B, N, Lp, F)
 		time_steps_to_predict = time_steps_to_predict.view(B, 1, L_pred, 1).repeat(1, N, 1, 1) # (B, N, Lp, 1)
 		te_pred = self.LearnableTE(time_steps_to_predict) # (B, N, Lp, F_te)
 
 		h = torch.cat([h, te_pred], dim=-1) # (B, N, Lp, F)
+		print(f"before decoder {h.size()}")
 
 		# (B, N, Lp, F) -> (B, N, Lp, 1) -> (1, B, Lp, N)
 		outputs = self.decoder(h).squeeze(dim=-1).permute(0, 2, 1).unsqueeze(dim=0) 
+		print(f"output size {outputs.size()}")
 
 		return outputs # (1, B, Lp, N)
 

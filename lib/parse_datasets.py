@@ -43,6 +43,9 @@ def parse_datasets(args, patch_ts=False, length_stat=False):
 		print("Test record ids (last 20):", test_record_ids[-20:])
 
 		record_id, tt, vals, mask = train_data[0]
+		print("time points size = ", tt.size())
+		print("vals size = ", vals.size())
+		print("mask size = ", mask.size())
 
 		input_dim = vals.size(-1)
 
