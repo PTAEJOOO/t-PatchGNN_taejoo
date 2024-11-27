@@ -83,7 +83,7 @@ if __name__ == '__main__':
 	# utils.makedirs("results/")
 
 	##################################################################
-	data_obj = parse_datasets(args, patch_ts=True)
+	data_obj = parse_datasets(args, patch_ts=False)
 	input_dim = data_obj["input_dim"]
 	# print(f"input dim = {input_dim}") # =41
 	### Model setting ###

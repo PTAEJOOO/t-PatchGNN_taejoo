@@ -249,9 +249,9 @@ def get_data_min_max(records, device):
 
 		time_max = torch.max(time_max, tt.max())
 
-	print('data_max:', data_max)
-	print('data_min:', data_min)
-	print('time_max:', time_max)
+	# print('data_max:', data_max)
+	# print('data_min:', data_min)
+	# print('time_max:', time_max)
 
 	return data_min, data_max, time_max
 
@@ -354,15 +354,15 @@ def patch_variable_time_collate_fn(batch, args, device = torch.device("cpu"), da
 
 	data_dict = utils.split_and_patch_batch(data_dict, args, n_observed_tp, patch_indices)
 	## .split_and_patch_batch를 거치면서 "data", "time_steps", "mask"는 사라짐 
-	print("*"*50)
-	print("observed data size = ", data_dict["observed_data"].size()) 
-	print("observed tp size = ", data_dict["observed_tp"].size()) 
-	print("observed mask size = ", data_dict["observed_mask"].size())
+	# print("*"*50)
+	# print("observed data size = ", data_dict["observed_data"].size()) 
+	# print("observed tp size = ", data_dict["observed_tp"].size()) 
+	# print("observed mask size = ", data_dict["observed_mask"].size())
 
-	print("data_to_predict size = ", data_dict["data_to_predict"].size()) 
-	print("tp_to_predict size = ", data_dict["tp_to_predict"].size()) 
-	print("mask_predicted_data size = ", data_dict["mask_predicted_data"].size()) 
-	print("*"*50)
+	# print("data_to_predict size = ", data_dict["data_to_predict"].size()) 
+	# print("tp_to_predict size = ", data_dict["tp_to_predict"].size()) 
+	# print("mask_predicted_data size = ", data_dict["mask_predicted_data"].size()) 
+	# print("*"*50)
 	return data_dict
 
 
@@ -389,6 +389,16 @@ def variable_time_collate_fn(batch, args, device = torch.device("cpu"), data_typ
 
 	for b, (record_id, tt, vals, mask) in enumerate(batch):
 		n_observed_tp = torch.lt(tt, args.history).sum()
+		import sys
+		print(tt)
+		print("#"*50)
+		print(args.history)
+		print("#"*50)
+		print(torch.lt(tt, args.history))
+		print("#"*50)
+		print(n_observed_tp)
+		print("#"*50)
+		# sys.exit(0)
 		observed_tp.append(tt[:n_observed_tp])
 		observed_data.append(vals[:n_observed_tp])
 		observed_mask.append(mask[:n_observed_tp])
@@ -420,6 +430,16 @@ def variable_time_collate_fn(batch, args, device = torch.device("cpu"), data_typ
 			"tp_to_predict": predicted_tp,
 			"mask_predicted_data": predicted_mask,
 			}
+	print("*"*50)
+	print("observed data size = ", data_dict["observed_data"].size()) 
+	print("observed tp size = ", data_dict["observed_tp"].size()) 
+	print("observed mask size = ", data_dict["observed_mask"].size())
+
+	print("data_to_predict size = ", data_dict["data_to_predict"].size()) 
+	print("tp_to_predict size = ", data_dict["tp_to_predict"].size()) 
+	print("mask_predicted_data size = ", data_dict["mask_predicted_data"].size()) 
+	print("*"*50)
+	sys.exit(0)
 	
 	return data_dict
 
